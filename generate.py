@@ -73,7 +73,7 @@ def _pinyin(s):
 
 if __name__ == '__main__':
     text = '''毛主席是中国的红太阳'''
-    model = load_model('checkpoint/epoch100.pt')
+    model = load_model('log/train_0/state/epoch500.pt')
     wavs = synthesis(model, text)
     for k in wavs:
         wav = wavs[k]

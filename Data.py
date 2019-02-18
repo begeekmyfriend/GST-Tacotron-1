@@ -18,9 +18,7 @@ class SpeechDataset(Dataset):
 
     def __init__(self, r=slice(0, None)):
         print('Start loading data')
-        # fpaths, texts = get_data(hp.data, r)  # thchs30
-        fpaths, texts = get_keda_data(hp.data, r)  # keda api
-        # fpaths, texts = get_thchs30_data(hp.data, r)
+        fpaths, texts = get_biaobei_data(hp.data, r)
         print('Finish loading data')
         self.fpaths = fpaths
         self.texts = texts
@@ -98,7 +96,7 @@ def get_keda_data(dataset_dir, r):
         for line in csv.readlines():
             items = line.strip().split('|')
             wav_paths.append(os.path.join(dataset_dir, wav_dir, items[0] + '.wav'))
-            text = text_normalize(items[1]) + 'E'
+            text = text_normalize(items[1]) + '~'
             text = [hp.char2idx[c] for c in text]
             text = torch.Tensor(text).type(torch.LongTensor)
             texts.append(text)
@@ -108,6 +106,29 @@ def get_keda_data(dataset_dir, r):
         print(wav)
 
     return wav_paths[r], texts[r]
+
+
+def get_biaobei_data(dataset_dir, r):
+    texts = []
+    wav_paths = []
+    text_paths = []
+
+    for f in os.listdir(dataset_dir):
+        file_path = os.path.join(dataset_dir, f)
+        fname, ext = os.path.splitext(file_path)
+        if ext == '.wav':
+            wav_paths.append(fname + ext)
+            text_paths.append(fname + '.trn')
+
+    for trn in text_paths[r]:
+        f = open(trn, 'r', encoding='utf-8')
+        text = f.readline().strip()
+        text = text_normalize(text) + '~'
+        text = [hp.char2idx[c] for c in text]
+        text = torch.Tensor(text).type(torch.LongTensor)
+        texts.append(text)
+
+    return wav_paths[r], texts
 
 
 def get_thchs30_data(dataset_dir, r):
@@ -142,7 +163,7 @@ def get_thchs30_data(dataset_dir, r):
     for file in text_paths[r]:
         f = open(file, 'r', encoding='utf-8')
         text = f.readlines()[1].strip()
-        text = text_normalize(text) + 'E'
+        text = text_normalize(text) + '~'
         text = [hp.char2idx[c] for c in text]
         text = torch.Tensor(text).type(torch.LongTensor)
         texts.append(text)
@@ -162,7 +183,7 @@ def get_aishell_data(data_dir, r):
             items = line.strip().split('|')
             wav_paths.append(os.path.join(data_dir, items[0] + '.wav'))
             text = items[1]
-            text = text_normalize(text) + 'E'
+            text = text_normalize(text) + '~'
             text = [hp.char2idx[c] for c in text]
             text = torch.Tensor(text).type(torch.LongTensor)
             texts.append(text)
@@ -183,7 +204,7 @@ def get_LJ_data(data_dir, r):
             items = line.strip().split('|')
             wav_paths.append(os.path.join(data_dir, items[0] + '.wav'))
             text = items[1]
-            text = text_normalize(text) + 'E'
+            text = text_normalize(text) + '~'
             text = [hp.char2idx[c] for c in text]
             text = torch.Tensor(text).type(torch.LongTensor)
             texts.append(text)
@@ -204,7 +225,7 @@ def get_eval_data(text, wav_path):
         text --- [1, T_x]
         mel ---  [1, 1, n_mels]
     '''
-    text = text_normalize(text) + 'E'
+    text = text_normalize(text) + '~'
     text = [hp.char2idx[c] for c in text]
     text = torch.Tensor(text).type(torch.LongTensor)  # [T_x]
     text = text.unsqueeze(0)  # [1, T_x]

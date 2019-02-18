@@ -23,7 +23,7 @@ device = torch.device(hp.device)
 def train(log_dir, dataset_size, start_epoch=0):
     # log directory
     if not os.path.exists(log_dir):
-        os.mkdir(log_dir)
+        os.makedirs(log_dir)
     if not os.path.exists(os.path.join(log_dir, 'state')):
         os.mkdir(os.path.join(log_dir, 'state'))
     if not os.path.exists(os.path.join(log_dir, 'wav')):
@@ -71,7 +71,7 @@ def train(log_dir, dataset_size, start_epoch=0):
             if torch.is_tensor(v):
                 state[k] = v.to(device)
 
-    criterion = TacotronLoss()  # Loss
+    Loss = TacotronLoss()  # Loss
 
     # load data
     if dataset_size is None:
@@ -107,7 +107,7 @@ def train(log_dir, dataset_size, start_epoch=0):
 
             mels_hat, mags_hat, _ = model(texts, mels_input, ref_mels)
 
-            mel_loss, mag_loss = criterion(mels[:, 1:, :], mels_hat, mags, mags_hat)
+            mel_loss, mag_loss = Loss(mels[:, 1:, :], mels_hat, mags, mags_hat)
             loss = mel_loss + mag_loss
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.)  # clip gradients
@@ -203,10 +203,11 @@ def set_lr(optimizer, step, f):
 
 if __name__ == '__main__':
     argv = sys.argv
-    log_number = int(argv[1])
-    start_epoch = int(argv[3])
-    if argv[2].lower() != 'all':
-        dataset_size = int(argv[2])
-    else:
-        dataset_size = None
+    log_number = 0#int(argv[1])
+    start_epoch = 0#int(argv[3])
+    # if argv[2].lower() != 'all':
+    #     dataset_size = int(argv[2])
+    # else:
+    dataset_size = None
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     train(hp.log_dir.format(log_number), dataset_size, start_epoch)
